@@ -22,7 +22,7 @@ optional arguments:
 
 ### FAQ
 #### Q. How do I run/execute it on my Windows machine?
-A. Download the latest release: [Py-Ran Releases](https://github.com/pbssubhash/Py-Ran/releases/download/0.1/Py-Ran_Release_v0.1.zip)
+A. Download the latest release: [Py-Ran Releases](https://github.com/pbssubhash/Py-Ran/releases/download/0.1/Py-Ran_Release_v0.1.zip); PASSWORD for the ZIP is `pyran`
 
 #### Q. My AV/EDR did not detect the execution. What should I do? 
 A. It means your environment is not ready to stop the tiny-est (not sure if that's a word, lol) ransomware threats. You have a lot of work to do. (First setup a backup mechanism!)
