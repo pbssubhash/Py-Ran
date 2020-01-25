@@ -1,0 +1,2 @@
+pyAesCrypt
+py2exe
