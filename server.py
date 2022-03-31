@@ -1,5 +1,6 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import logging
+import pgpy
 
 class S(BaseHTTPRequestHandler):
     def _set_response(self):
@@ -17,6 +18,8 @@ class S(BaseHTTPRequestHandler):
         post_data = self.rfile.read(content_length) # <--- Gets the data itself
         logging.info("POST request,\nPath: %s\nHeaders:\n%s\n\nBody:\n%s\n",
                 str(self.path), str(self.headers), post_data.decode('utf-8'))
+        pgp_message = post_data.decode('utf-8')
+#        encrypted_message = pgpy.PGPMessage.from_blob(pgp_message)
 
         self._set_response()
         self.wfile.write("POST request for {}".format(self.path).encode('utf-8'))

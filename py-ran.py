@@ -147,7 +147,8 @@ if __name__ == '__main__':
             url = 'http://localhost:8080'
             key = generate_encryption_key(25)
             encrypted_key = pgp_encrypt(key)
-            obj = {'this': encrypted_key}
+            b64encoded_encrypted_key = base64.b64encode(encrypted_key.encode('utf-8'))
+            obj = {'this': str(b64encoded_encrypted_key)}
             x = requests.post(url, data = obj)
 
     # Finish up by removing from the screen
